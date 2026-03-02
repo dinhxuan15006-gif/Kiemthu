@@ -15,7 +15,7 @@ import org.testng.annotations.Test;
 import io.github.bonigarcia.wdm.WebDriverManager;
 
 import java.time.Duration;
-public class dienmayxanhlogintest {
+public class DienMayXanhLoginTest {
 	WebDriver driver;
     WebDriverWait wait;
 
