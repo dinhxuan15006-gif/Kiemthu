@@ -13,17 +13,36 @@ import java.util.Date;
 
 @WebServlet("/share")
 public class ShareServlet extends HttpServlet {
+
+    // --- 1. THÊM HÀM NÀY ĐỂ SỬA LỖI 405 ---
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // Nếu người dùng cố tình gõ /share trên trình duyệt (GET request)
+        // Thay vì báo lỗi, ta chuyển hướng họ về trang chủ
+        resp.sendRedirect(req.getContextPath() + "/home");
+    }
+    // ------------------------------------
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // Đặt định dạng tiếng Việt cho phản hồi
+        resp.setCharacterEncoding("UTF-8");
+        
         try {
             User user = (User) req.getSession().getAttribute("user");
             if (user == null) {
-                resp.getWriter().write("LoginRequired"); // Phản hồi cho AJAX hoặc redirect
+                resp.getWriter().write("LoginRequired"); // Phản hồi cho AJAX
                 return;
             }
 
             String videoId = req.getParameter("videoId");
             String emailTo = req.getParameter("email");
+            
+            // Kiểm tra dữ liệu đầu vào cơ bản
+            if (videoId == null || emailTo == null || emailTo.isEmpty()) {
+                 resp.getWriter().write("Error");
+                 return;
+            }
 
             Video video = new Video();
             video.setId(videoId);
@@ -40,7 +59,12 @@ public class ShareServlet extends HttpServlet {
 
             // Gửi mail
             String subject = "Chia sẻ video hay từ Online Entertainment";
-            String body = "Xin chào, bạn " + user.getFullname() + " đã chia sẻ video này: https://www.youtube.com/watch?v=" + videoId;
+            // Tạo link video (dùng request để lấy đúng domain hiện tại nếu cần, hoặc hardcode youtube)
+            String body = "Xin chào,<br><br>" 
+                        + "Bạn <b>" + user.getFullname() + "</b> đã chia sẻ video này cho bạn:<br>"
+                        + "<a href='https://www.youtube.com/watch?v=" + videoId + "'>Xem video ngay</a><br><br>"
+                        + "Trân trọng.";
+            
             EmailUtil.send(emailTo, subject, body);
 
             resp.getWriter().write("Success");

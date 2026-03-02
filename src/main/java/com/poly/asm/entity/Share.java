@@ -13,75 +13,41 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 @Entity
-@Table(name="Shares")
+@Table(name="Share")
 public class Share {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="Id")
     private Long id;
 
-    // Khóa ngoại trỏ về User
+    @Column(name="Emails")
+    private String emails; // Email người nhận
+
+    @Column(name="ShareDate")
+    @Temporal(TemporalType.TIMESTAMP) // Sửa DATE thành TIMESTAMP
+    private Date shareDate = new Date();
+
+    // Khóa ngoại tới User (Người gửi)
     @ManyToOne
     @JoinColumn(name="UserId")
     private User user;
 
-    // Khóa ngoại trỏ về Video
+    // Khóa ngoại tới Video (Video được chia sẻ)
     @ManyToOne
     @JoinColumn(name="VideoId")
     private Video video;
 
-    @Column(name="Emails")
-    private String emails;
-
-    @Column(name="ShareDate")
-    @Temporal(TemporalType.DATE)
-    private Date shareDate = new Date();
-
-    // --- Constructors ---
-
-    public Share() {
-    }
+    public Share() {}
 
     // --- Getters and Setters ---
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Video getVideo() {
-        return video;
-    }
-
-    public void setVideo(Video video) {
-        this.video = video;
-    }
-
-    public String getEmails() {
-        return emails;
-    }
-
-    public void setEmails(String emails) {
-        this.emails = emails;
-    }
-
-    public Date getShareDate() {
-        return shareDate;
-    }
-
-    public void setShareDate(Date shareDate) {
-        this.shareDate = shareDate;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getEmails() { return emails; }
+    public void setEmails(String emails) { this.emails = emails; }
+    public Date getShareDate() { return shareDate; }
+    public void setShareDate(Date shareDate) { this.shareDate = shareDate; }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+    public Video getVideo() { return video; }
+    public void setVideo(Video video) { this.video = video; }
 }

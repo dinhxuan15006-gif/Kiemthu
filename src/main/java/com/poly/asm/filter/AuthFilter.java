@@ -1,44 +1,46 @@
 package com.poly.asm.filter;
 
+import com.poly.asm.entity.User;
 import java.io.IOException;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.poly.asm.entity.User;
 
+// Chặn tất cả các request tới trang admin và các chức năng cần đăng nhập
 @WebFilter({"/admin/*", "/like", "/share", "/account/*"})
 public class AuthFilter implements Filter {
-    
+
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-        
+    public void init(FilterConfig filterConfig) throws ServletException {}
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
+        String uri = req.getRequestURI();
         
         User user = (User) req.getSession().getAttribute("user");
+        String error = "";
 
         if (user == null) {
-            // Chưa đăng nhập -> chuyển về trang login
-            resp.sendRedirect(req.getContextPath() + "/login?message=Vui long dang nhap");
-        } else if (req.getRequestURI().contains("/admin") && !user.getAdmin()) {
-            // Đã đăng nhập nhưng không phải admin -> đá về trang chủ
-            resp.sendRedirect(req.getContextPath() + "/home?message=Khong co quyen truy cap");
+            // 1. Chưa đăng nhập
+            error = "Vui lòng đăng nhập!";
+        } else if (!user.getAdmin() && uri.contains("/admin/")) {
+            // 2. Đã đăng nhập nhưng không phải Admin mà cố vào trang admin
+            error = "Vui lòng đăng nhập với vai trò Admin!";
+        }
+
+        if (!error.isEmpty()) {
+            // Lưu url hiện tại để sau khi login quay lại đúng trang đó (nếu muốn)
+            req.getSession().setAttribute("security-uri", uri);
+            resp.sendRedirect(req.getContextPath() + "/login?error=" + java.net.URLEncoder.encode(error, "UTF-8"));
         } else {
-            // Cho phép đi tiếp
+            // Cho qua
             chain.doFilter(request, response);
         }
     }
-    
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {}
-    
+
     @Override
     public void destroy() {}
 }

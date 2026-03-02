@@ -6,14 +6,17 @@ import javax.mail.internet.*;
 
 public class EmailUtil {
     public static void send(String to, String subject, String body) throws Exception {
-        final String from = "your_email@gmail.com"; // Điền email của bạn
-        final String password = "your_app_password"; // Điền App Password (không phải pass thường)
+        // Khai báo thông tin tài khoản (Nên để trong file config riêng nếu làm dự án thật)
+        final String from = "nguyenquangnhat286@gmail.com"; 
+        final String password = "xgdtkijjdddcplld"; // Viết liền, không dấu cách // Lấy App Password từ Google Account
 
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.host", "smtp.gmail.com");
         props.put("mail.smtp.port", "587");
+        // Fix lỗi SSL/TLS trên một số mạng
+        props.put("mail.smtp.ssl.protocols", "TLSv1.2");
 
         Session session = Session.getInstance(props, new Authenticator() {
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -24,8 +27,11 @@ public class EmailUtil {
         Message message = new MimeMessage(session);
         message.setFrom(new InternetAddress(from));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-        message.setSubject(subject);
-        message.setText(body);
+        message.setSubject(MimeUtility.encodeText(subject, "UTF-8", "B")); // Encode tiêu đề
+        
+        // QUAN TRỌNG: Gửi HTML utf-8 để hiển thị tiếng Việt đẹp và link click được
+        message.setContent(body, "text/html; charset=utf-8");
+        
         Transport.send(message);
     }
 }

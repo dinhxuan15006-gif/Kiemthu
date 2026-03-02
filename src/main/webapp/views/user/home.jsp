@@ -1,4 +1,5 @@
-<%@ page pageEncoding="UTF-8"%>
+
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html>
@@ -40,6 +41,6 @@
         </ul>
     </div>
     
-    <footer class="text-center">FPT Polytechnic &copy; 2024</footer>
+    <footer class="text-center">Nguyễn Quang Nhật &copy; 2025</footer>
 </body>
 </html>

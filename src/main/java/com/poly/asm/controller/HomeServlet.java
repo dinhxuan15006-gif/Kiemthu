@@ -10,15 +10,15 @@ import javax.servlet.http.HttpServletResponse;
 import com.poly.asm.dao.VideoDAO;
 import com.poly.asm.entity.Video;
 
-@WebServlet("/home")
+@WebServlet({"/index", "/home", ""}) 
 public class HomeServlet extends HttpServlet {
     
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         VideoDAO dao = new VideoDAO();
-        List<Video> list = dao.findAll(); // Lấy tất cả video
-        
+        // SỬA: Chỉ lấy 6 video active nhiều view nhất (Hàm này đã thêm ở bước trước)
+        List<Video> list = dao.findTop6ActiveVideos(); 
         req.setAttribute("videos", list);
-        req.getRequestDispatcher("/views/user/home.jsp").forward(req, resp);
+        req.getRequestDispatcher("/views/index.jsp").forward(req, resp);
     }
 }

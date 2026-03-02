@@ -35,7 +35,7 @@ public class Favorite {
     private Video video;
 
     @Column(name="LikeDate")
-    @Temporal(TemporalType.DATE)
+    @Temporal(TemporalType.TIMESTAMP) // Sửa DATE thành TIMESTAMP
     private Date likeDate = new Date();
 
     // --- Constructors ---

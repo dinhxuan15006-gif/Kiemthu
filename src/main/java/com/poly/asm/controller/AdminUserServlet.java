@@ -8,36 +8,78 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
 
-@WebServlet({"/admin/users", "/admin/user/update", "/admin/user/delete", "/admin/user/edit"})
+// Map đầy đủ các đường dẫn
+@WebServlet({"/admin/users", "/admin/user/create", "/admin/user/update", "/admin/user/delete", "/admin/user/edit"})
 public class AdminUserServlet extends HttpServlet {
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        UserDAO dao = new UserDAO();
-        String uri = req.getRequestURI();
+        req.setCharacterEncoding("UTF-8");
+        resp.setCharacterEncoding("UTF-8");
         
-        if (uri.contains("edit")) {
-            String id = req.getParameter("id");
-            req.setAttribute("userEdit", dao.findById(id));
-        } else if (uri.contains("delete")) {
-            String id = req.getParameter("id");
-            try { dao.remove(id); } catch (Exception e) { req.setAttribute("message", "Không thể xóa user này!"); }
+        UserDAO dao = new UserDAO();
+        User user = new User();
+        String uri = req.getRequestURI();
+        String message = "";
+
+        try {
+            if (uri.contains("edit")) {
+                String id = req.getParameter("id");
+                user = dao.findById(id); // Lấy user lên form để sửa
+            } else if (uri.contains("delete")) {
+                String id = req.getParameter("id");
+                // Chặn không cho xóa chính mình đang đăng nhập
+                User currentUser = (User) req.getSession().getAttribute("user");
+                if (currentUser != null && currentUser.getId().equals(id)) {
+                     message = "Lỗi: Bạn không thể xóa tài khoản đang đăng nhập!";
+                } else {
+                    dao.remove(id);
+                    message = "Xóa tài khoản thành công!";
+                }
+            }
+        } catch (Exception e) {
+            message = "Lỗi thao tác: " + e.getMessage();
         }
 
-        req.setAttribute("users", dao.findAll());
+        req.setAttribute("message", message);
+        req.setAttribute("user", user); // Truyền object user xuống form
+        req.setAttribute("items", dao.findAll()); // Truyền danh sách xuống bảng
         req.getRequestDispatcher("/views/admin/user-manager.jsp").forward(req, resp);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
+        resp.setCharacterEncoding("UTF-8");
+
+        UserDAO dao = new UserDAO();
+        User user = new User();
+        String uri = req.getRequestURI();
+        
         try {
-            User user = new User();
+            // Map dữ liệu từ form vào entity User
             BeanUtils.populate(user, req.getParameterMap());
-            UserDAO dao = new UserDAO();
-            dao.update(user); // Chỉ cho update, không cho create user ở trang admin (thường là vậy)
-            req.setAttribute("message", "Cập nhật thành công!");
+            
+            if (uri.contains("create")) {
+                // Kiểm tra trùng ID
+                if(dao.findById(user.getId()) != null) {
+                    req.setAttribute("message", "Lỗi: Tên đăng nhập này đã tồn tại!");
+                } else {
+                    dao.create(user);
+                    req.setAttribute("message", "Thêm người dùng mới thành công!");
+                    user = new User(); // Reset form sau khi thêm
+                }
+            } else if (uri.contains("update")) {
+                dao.update(user);
+                req.setAttribute("message", "Cập nhật thành công!");
+            }
         } catch (Exception e) {
             req.setAttribute("message", "Lỗi: " + e.getMessage());
+            e.printStackTrace();
         }
-        doGet(req, resp);
+
+        req.setAttribute("user", user);
+        req.setAttribute("items", dao.findAll());
+        req.getRequestDispatcher("/views/admin/user-manager.jsp").forward(req, resp);
     }
 }

@@ -1,6 +1,7 @@
 package com.poly.asm.controller;
 
 import com.poly.asm.dao.FavoriteDAO;
+import com.poly.asm.dao.VideoDAO;
 import com.poly.asm.entity.Favorite;
 import com.poly.asm.entity.User;
 import com.poly.asm.entity.Video;
@@ -16,29 +17,43 @@ public class LikeServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         User user = (User) req.getSession().getAttribute("user");
         String videoId = req.getParameter("id");
-        
+
+        // 1. Chưa đăng nhập -> Bắt đăng nhập
         if (user == null) {
-            resp.sendRedirect("login"); // Yêu cầu đăng nhập [cite: 86]
+            resp.sendRedirect("login");
             return;
         }
 
+        // 2. Kiểm tra ID video
+        if (videoId == null || videoId.trim().isEmpty()) {
+            resp.sendRedirect("index");
+            return;
+        }
+
+        // 3. KIỂM TRA VIDEO CÓ TỒN TẠI KHÔNG? (Đây là bước chặn lỗi 500)
+        VideoDAO videoDAO = new VideoDAO();
+        Video video = videoDAO.findById(videoId);
+
+        if (video == null) {
+            System.out.println("Cảnh báo: Đang cố like video không tồn tại ID=" + videoId);
+            resp.sendRedirect("index"); // Video ma -> Quay về trang chủ ngay
+            return;
+        }
+
+        // 4. Xử lý Like/Unlike an toàn
         FavoriteDAO dao = new FavoriteDAO();
         Favorite favorite = dao.findByUserIdAndVideoId(user.getId(), videoId);
 
         if (favorite == null) {
-            // Chưa like thì like
             favorite = new Favorite();
-            Video video = new Video();
-            video.setId(videoId);
-            favorite.setVideo(video);
             favorite.setUser(user);
+            favorite.setVideo(video); // Dùng video thật lấy từ DB
             favorite.setLikeDate(new Date());
             dao.create(favorite);
         } else {
-            // Đã like thì unlike (xóa) [cite: 79]
             dao.remove(favorite.getId());
         }
-        
-        resp.sendRedirect(req.getHeader("referer")); // Quay lại trang cũ
+
+        resp.sendRedirect(req.getHeader("referer"));
     }
 }
