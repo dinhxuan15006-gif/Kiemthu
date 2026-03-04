@@ -3,13 +3,13 @@
 <suite name="Failed suite [Default suite]" guice-stage="DEVELOPMENT">
   <test thread-count="5" name="Default test(failed)">
     <classes>
-      <class name="testj4.dienmayxanhlogintest">
+      <class name="testj4.testfull">
         <methods>
-          <include name="TC02_InvalidPhone"/>
+          <include name="TC01_LoginSuccess"/>
           <include name="setUp"/>
-          <include name="tearDown"/>
+          <include name="TC04_FindUserValid"/>
         </methods>
-      </class> <!-- testj4.dienmayxanhlogintest -->
+      </class> <!-- testj4.testfull -->
     </classes>
   </test> <!-- Default test(failed) -->
 </suite> <!-- Failed suite [Default suite] -->
